@@ -29,6 +29,31 @@ export async function recordUnknownQuestion(question: string) {
   return { success: true };
 }
 
+
+export async function recordInterviewRequest(params: {
+  date: string;
+  time: string;
+  mode: string;
+  contactEmail: string;
+  contactPhone?: string;
+  notes?: string;
+}) {
+  console.log("[interview] request logged:", params);
+  const message = `
+New interview/meeting request received:
+Date: ${params.date}
+Time: ${params.time}
+Mode: ${params.mode}
+Email: ${params.contactEmail}
+Phone: ${params.contactPhone ?? "N/A"}
+Notes: ${params.notes ?? "N/A"}
+  `.trim();
+  await sendPush("Interview Request", message);
+  return {
+    success: true,
+    reply: "I noted the details. Thank you, I will follow up as needed."
+  };
+}
 export const tools = [
   {
     type: "function",
@@ -58,5 +83,23 @@ export const tools = [
         required: ["question"],
       },
     },
-  },
+  }, {
+    type: "function",
+    function: {
+      name: "record_interview_request",
+      description: "Log an interview or meeting request, including proposed date/time, mode, and contact info, and push a notification to the owner.",
+      parameters: {
+        type: "object",
+        properties: {
+          date: { type: "string", description: "Proposed date of the interview/meeting (ISO format preferred)" },
+          time: { type: "string", description: "Proposed time of the interview/meeting" },
+          mode: { type: "string", description: "Mode of meeting (e.g., Zoom, Google Meet, phone, in-person)" },
+          contactEmail: { type: "string", description: "Contact email for the meeting" },
+          contactPhone: { type: "string", description: "Contact phone number (optional)" },
+          notes: { type: "string", description: "Any additional details provided by the employer (optional)" },
+        },
+        required: ["date", "time", "mode", "contactEmail"],
+      },
+    },
+  }
 ] as const;
